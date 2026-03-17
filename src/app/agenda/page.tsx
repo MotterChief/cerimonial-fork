@@ -14,6 +14,7 @@ import { useIsMobile } from '@/utils/window.utils';
 import CustomDatePicker from '@/components/fields/DatePicker';
 import { toDate, createLocalDate } from '@/utils/date.utils';
 import { getBorderCardStyle, getSituationStyle } from '@/utils/situationStyles.utils';
+import { useDemoGuard } from '@/utils/useDemoGuard';
 
 interface Client {
   id: string;
@@ -33,6 +34,7 @@ interface StatusOption {
 export default function AgendaPage() {
   const { user } = useAuth();
   const { addNotification } = useNotification();
+  const guard = useDemoGuard();
   const [events, setEvents] = useState<Event[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
@@ -92,18 +94,20 @@ export default function AgendaPage() {
   const handleAddEvent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    if (!newEvent.clientId) { 
-      addNotification('Por favor, selecione um cliente.', 'warning'); 
-      return; 
+    if (!newEvent.clientId) {
+      addNotification('Por favor, selecione um cliente.', 'warning');
+      return;
     }
-    try {
-      await addEvent(user.uid, newEvent);
-      setNewEvent(initialFormState);
-      await fetchData();
-      addNotification('Evento adicionado com sucesso!', 'success');
-    } catch (error) {
-      addNotification((error as Error).message, 'error');
-    }
+    await guard(async () => {
+      try {
+        await addEvent(user.uid, newEvent);
+        setNewEvent(initialFormState);
+        await fetchData();
+        addNotification('Evento adicionado com sucesso!', 'success');
+      } catch (error) {
+        addNotification((error as Error).message, 'error');
+      }
+    });
   };
 
   const openEditModal = (event: Event) => {
@@ -114,16 +118,18 @@ export default function AgendaPage() {
   const handleUpdateEvent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !editingEvent) return;
-    try {
-      const { id, ...eventData } = editingEvent;
-      await updateEvent(user.uid, id, eventData);
-      setIsEditModalOpen(false);
-      setEditingEvent(null);
-      await fetchData();
-      addNotification('Evento atualizado com sucesso!', 'success');
-    } catch (error) {
-      addNotification((error as Error).message, 'error');
-    }
+    await guard(async () => {
+      try {
+        const { id, ...eventData } = editingEvent;
+        await updateEvent(user.uid, id, eventData);
+        setIsEditModalOpen(false);
+        setEditingEvent(null);
+        await fetchData();
+        addNotification('Evento atualizado com sucesso!', 'success');
+      } catch (error) {
+        addNotification((error as Error).message, 'error');
+      }
+    });
   };
 
   const handleEditClientChange = (newValue: SingleValue<ClientOption> | MultiValue<ClientOption>, actionMeta: ActionMeta<ClientOption>) => {
