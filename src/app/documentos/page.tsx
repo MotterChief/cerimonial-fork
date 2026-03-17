@@ -19,6 +19,7 @@ import { SingleValue } from 'react-select';
 import { getBorderCardStyle, getSituationStyle } from '@/utils/situationStyles.utils';
 import { formatCurrency } from '@/utils/currency.utils';
 import TextArea from '@/components/fields/TextArea';
+import { useDemoGuard } from '@/utils/useDemoGuard';
 
 interface ContractTypeOptions {
   value: string;
@@ -38,6 +39,7 @@ interface Event {
 export default function DocumentosPage() {
   const { user } = useAuth();
   const { addNotification } = useNotification();
+  const guard = useDemoGuard();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -113,15 +115,17 @@ export default function DocumentosPage() {
       addNotification('Por favor, selecione um evento para salvar o documento.', 'warning');
       return;
     }
-    try {
-      await addDocument(user.uid, { ...newDocument, event: selectedEvent });
-      setNewDocument(initialFormState);
-      fetchDocuments();
-      addNotification('Documento adicionado com sucesso!', 'success');
-    } catch (error) {
-      console.error('Failed to add document!', error);
-      addNotification('Falha ao adicionar documento!', 'error');
-    }
+    await guard(async () => {
+      try {
+        await addDocument(user.uid, { ...newDocument, event: selectedEvent });
+        setNewDocument(initialFormState);
+        fetchDocuments();
+        addNotification('Documento adicionado com sucesso!', 'success');
+      } catch (error) {
+        console.error('Failed to add document!', error);
+        addNotification('Falha ao adicionar documento!', 'error');
+      }
+    });
   };
 
   const handleDeleteRequest = (doc: Document) => {
@@ -131,17 +135,19 @@ export default function DocumentosPage() {
 
   const handleDeleteConfirm = async () => {
     if (!user || !documentToDelete) return;
-    try {
-      await deleteDocument(user.uid, documentToDelete.id);
-      fetchDocuments();
-      addNotification('Documento excluído com sucesso!', 'success');
-    } catch (error) {
-      console.error('Failed to delete document!', error);
-      addNotification('Falha ao excluir documento!', 'error');
-    } finally {
-      setDeleteModalOpen(false);
-      setDocumentToDelete(null);
-    }
+    await guard(async () => {
+      try {
+        await deleteDocument(user.uid, documentToDelete.id);
+        fetchDocuments();
+        addNotification('Documento excluído com sucesso!', 'success');
+      } catch (error) {
+        console.error('Failed to delete document!', error);
+        addNotification('Falha ao excluir documento!', 'error');
+      } finally {
+        setDeleteModalOpen(false);
+        setDocumentToDelete(null);
+      }
+    });
   };
 
   const openEditModal = (document: Document) => {
@@ -157,16 +163,18 @@ export default function DocumentosPage() {
   const handleUpdateDocument = async (e: FormEvent) => {
     e.preventDefault();
     if (!user || !editingDocument) return;
-    try {
-      const { id, ...documentData } = editingDocument;
-      await updateDocument(user.uid, id, documentData);
-      closeEditModal();
-      fetchDocuments();
-      addNotification('Documento atualizado com sucesso!', 'success');
-    } catch (error) {
-      console.error('Failed to update document!', error);
-      addNotification('Falha ao atualizar documento!', 'error');
-    }
+    await guard(async () => {
+      try {
+        const { id, ...documentData } = editingDocument;
+        await updateDocument(user.uid, id, documentData);
+        closeEditModal();
+        fetchDocuments();
+        addNotification('Documento atualizado com sucesso!', 'success');
+      } catch (error) {
+        console.error('Failed to update document!', error);
+        addNotification('Falha ao atualizar documento!', 'error');
+      }
+    });
   };
 
   const filteredDocuments = selectedEvent
