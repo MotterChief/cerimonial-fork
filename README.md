@@ -3,6 +3,7 @@
 Sistema completo de gestão para cerimonialistas, desenvolvido com Next.js 16, React 19, TypeScript e Firebase. Centraliza o controle de eventos, clientes, fornecedores, financeiro e muito mais em uma única plataforma.
 
 **Algumas informações foram ocultadas por questões de segurança!**
+
 ---
 
 ## Funcionalidades
