@@ -7,6 +7,7 @@ import ObservationEditor from '@/components/ObservationEditor'; // Import the ne
 import Switcher from '@/components/fields/Switcher';
 import { useAuth } from '@/context/AuthContext';
 import { useNotification } from '@/context/NotificationContext';
+import { useDemoGuard } from '@/utils/useDemoGuard';
 import { 
   updateRoteiro, 
   deleteRoteiroAndItsItems, 
@@ -30,6 +31,7 @@ interface RoteiroCardProps {
 const RoteiroCard: React.FC<RoteiroCardProps> = ({ script, eventDate, onUpdate }) => {
   const { user } = useAuth();
   const { addNotification } = useNotification();
+  const guard = useDemoGuard();
   
   // Roteiro Modals State
   const [isEditModalOpen, setEditModalOpen] = useState(false);
@@ -72,28 +74,32 @@ const RoteiroCard: React.FC<RoteiroCardProps> = ({ script, eventDate, onUpdate }
   // Roteiro Handlers
   const handleEditRoteiro = async () => {
     if (!user) return;
-    try {
-      await updateRoteiro(user.uid, script.id, { name: editedName });
-      onUpdate();
-      setEditModalOpen(false);
-      addNotification("Roteiro atualizado com sucesso!", 'success');
-    } catch (error) {
-      console.error("Failed to edit script:", error);
-      addNotification("Falha ao editar o roteiro.", 'error');
-    }
+    await guard(async () => {
+      try {
+        await updateRoteiro(user.uid, script.id, { name: editedName });
+        onUpdate();
+        setEditModalOpen(false);
+        addNotification("Roteiro atualizado com sucesso!", 'success');
+      } catch (error) {
+        console.error("Failed to edit script:", error);
+        addNotification("Falha ao editar o roteiro.", 'error');
+      }
+    });
   };
 
   const handleDeleteRoteiro = async () => {
     if (!user) return;
-    try {
-      await deleteRoteiroAndItsItems(user.uid, script.id);
-      onUpdate();
-      setDeleteModalOpen(false);
-      addNotification("Roteiro excluído com sucesso!", 'success');
-    } catch (error) {
-      console.error("Failed to delete script:", error);
-      addNotification("Falha ao excluído o roteiro.", 'error');
-    }
+    await guard(async () => {
+      try {
+        await deleteRoteiroAndItsItems(user.uid, script.id);
+        onUpdate();
+        setDeleteModalOpen(false);
+        addNotification("Roteiro excluído com sucesso!", 'success');
+      } catch (error) {
+        console.error("Failed to delete script:", error);
+        addNotification("Falha ao excluído o roteiro.", 'error');
+      }
+    });
   };
 
   // Roteiro Item Handlers
@@ -110,25 +116,27 @@ const RoteiroCard: React.FC<RoteiroCardProps> = ({ script, eventDate, onUpdate }
       return;
     }
 
-    try {
-      await addRoteiroItem(user.uid, {
-        roteiroId: script.id,
-        time: newItemTime,
-        description: newItemDescription,
-        Observations: currentObservations,
-        isNextDay: newItemIsNextDay
-      });
-      setNewItemTime('');
-      setNewItemDescription('');
-      setNewItemIsNextDay(false);
-      setCurrentObservations([]);
-      refreshItems();
-      setAddItemModalOpen(false);
-      addNotification("Item adicionado ao roteiro com sucesso!", 'success');
-    } catch (error) {
-      console.error("Failed to add script item:", error);
-      addNotification("Falha ao adicionar o item ao roteiro.", 'error');
-    }
+    await guard(async () => {
+      try {
+        await addRoteiroItem(user.uid, {
+          roteiroId: script.id,
+          time: newItemTime,
+          description: newItemDescription,
+          Observations: currentObservations,
+          isNextDay: newItemIsNextDay
+        });
+        setNewItemTime('');
+        setNewItemDescription('');
+        setNewItemIsNextDay(false);
+        setCurrentObservations([]);
+        refreshItems();
+        setAddItemModalOpen(false);
+        addNotification("Item adicionado ao roteiro com sucesso!", 'success');
+      } catch (error) {
+        console.error("Failed to add script item:", error);
+        addNotification("Falha ao adicionar o item ao roteiro.", 'error');
+      }
+    });
   };
 
   const handleOpenEditItemModal = (item: RoteiroItem) => {
@@ -150,22 +158,24 @@ const RoteiroCard: React.FC<RoteiroCardProps> = ({ script, eventDate, onUpdate }
       return;
     }
 
-    try {
-      await updateRoteiroItem(user.uid, selectedItem.id, {
-        time: editedItemTime,
-        description: editedItemDescription,
-        Observations: currentObservations,
-        isNextDay: editedItemIsNextDay
-      });
-      refreshItems();
-      setEditItemModalOpen(false);
-      setSelectedItem(null);
-      setCurrentObservations([]);
-      addNotification("Item do roteiro atualizado com sucesso!", 'success');
-    } catch (error) {
-      console.error("Failed to update script item:", error);
-      addNotification("Falha ao atualizar o item do roteiro.", 'error');
-    }
+    await guard(async () => {
+      try {
+        await updateRoteiroItem(user.uid, selectedItem.id, {
+          time: editedItemTime,
+          description: editedItemDescription,
+          Observations: currentObservations,
+          isNextDay: editedItemIsNextDay
+        });
+        refreshItems();
+        setEditItemModalOpen(false);
+        setSelectedItem(null);
+        setCurrentObservations([]);
+        addNotification("Item do roteiro atualizado com sucesso!", 'success');
+      } catch (error) {
+        console.error("Failed to update script item:", error);
+        addNotification("Falha ao atualizar o item do roteiro.", 'error');
+      }
+    });
   };
 
   const handleOpenDeleteItemModal = (item: RoteiroItem) => {
@@ -175,16 +185,18 @@ const RoteiroCard: React.FC<RoteiroCardProps> = ({ script, eventDate, onUpdate }
 
   const handleDeleteItem = async () => {
     if (!user || !selectedItem) return;
-    try {
-      await deleteRoteiroItem(user.uid, selectedItem.id);
-      refreshItems();
-      setDeleteItemModalOpen(false);
-      setSelectedItem(null);
-      addNotification("Item do roteiro excluído com sucesso!", 'success');
-    } catch (error) {
-      console.error("Failed to delete script item:", error);
-      addNotification("Falha ao deletar o item do roteiro.", 'error');
-    }
+    await guard(async () => {
+      try {
+        await deleteRoteiroItem(user.uid, selectedItem.id);
+        refreshItems();
+        setDeleteItemModalOpen(false);
+        setSelectedItem(null);
+        addNotification("Item do roteiro excluído com sucesso!", 'success');
+      } catch (error) {
+        console.error("Failed to delete script item:", error);
+        addNotification("Falha ao deletar o item do roteiro.", 'error');
+      }
+    });
   };
 
   const getSituationItem = (eventDate: string, itemTime: string, isNextDay?: boolean): string => {
