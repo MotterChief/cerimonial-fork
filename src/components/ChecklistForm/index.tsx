@@ -6,6 +6,7 @@ import CustomSelect from '@/components/Select';
 import { checklistFormOptions } from '@/app/checklists/checklist.config';
 import { useNotification } from '@/context/NotificationContext';
 import { useAuth } from '@/context/AuthContext';
+import { useDemoGuard } from '@/utils/useDemoGuard';
 
 interface ChecklistFormProps {
   eventId: string | null;
@@ -18,40 +19,42 @@ const ChecklistForm: React.FC<ChecklistFormProps> = ({ eventId, onItemAdded}) =>
   const [period, setPeriod] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { addNotification } = useNotification();
+  const guard = useDemoGuard();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if ( user && !user.uid || !user) {
-        addNotification('Usuário não autenticado.', 'error');
-        return;
+    if (user && !user.uid || !user) {
+      addNotification('Usuário não autenticado.', 'error');
+      return;
     }
     if (!eventId) {
-        addNotification('Por favor, selecione um evento para adicionar uma tarefa ao checklist.', 'warning');
-        return;
+      addNotification('Por favor, selecione um evento para adicionar uma tarefa ao checklist.', 'warning');
+      return;
     }
     if (!title || !period) {
       addNotification('Por favor, preencha o título e selecione o período.', 'warning');
       return;
     }
-
-    setIsSubmitting(true);
-    try {
-      await addChecklistItem(user.uid, {
-        eventId,
-        title,
-        period,
-        completed: false,
-      });
-      setTitle('');
-      setPeriod(null); 
-      onItemAdded();
-      addNotification('Tarefa adicionada ao checklist com sucesso!', 'success');
-    } catch (error) {
-      console.error('Failed to add checklist item:', error);
-      addNotification('Erro ao adicionar item!', 'error');
-    } finally {
-      setIsSubmitting(false);
-    }
+    await guard(async () => {
+      setIsSubmitting(true);
+      try {
+        await addChecklistItem(user.uid, {
+          eventId,
+          title,
+          period,
+          completed: false,
+        });
+        setTitle('');
+        setPeriod(null);
+        onItemAdded();
+        addNotification('Tarefa adicionada ao checklist com sucesso!', 'success');
+      } catch (error) {
+        console.error('Failed to add checklist item:', error);
+        addNotification('Erro ao adicionar item!', 'error');
+      } finally {
+        setIsSubmitting(false);
+      }
+    });
   };
 
   return (
