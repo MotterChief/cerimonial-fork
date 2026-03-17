@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd \"C:\\\\Projetos Sistema\\\\cerimonial\" && npm run build 2>&1)",
+      "Bash(ls -1 \"C:\\\\Projetos Sistema\\\\cerimonial/src/app\" | grep -E \"\\\\.tsx?$\")",
+      "Bash(cd \"/c/Projetos Sistema/cerimonial\" && npm install next-themes)"
+    ]
+  }
+}

@@ -1,0 +1,415 @@
+/* =========================================
+   1. Container e Input (Estrutura Base)
+   ========================================= */
+
+/* Garante que o container ocupe o espaço correto na grid/flex do pai */
+.datepicker-container {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+/* O wrapper do React Datepicker precisa preencher o container */
+.react-datepicker-wrapper {
+  width: 100%;
+  display: block; /* Garante comportamento de bloco */
+}
+
+/* Estilização do INPUT para parecer nativo e moderno */
+.react-datepicker-wrapper input {
+  width: 100%;
+  height: 48px; /* Altura confortável para toque (mobile friendly) */
+  padding: 10px 16px;
+  
+  /* Padding na direita maior para caber o ícone "X" de limpar e o ícone de calendário */
+  padding-right: 45px; 
+  
+  font-size: 1rem; /* 16px previne zoom automático no iPhone */
+  line-height: 1.5;
+  color: #374151; /* Cinza escuro */
+  background-color: #ffffff;
+  background-clip: padding-box;
+  border: 1px solid #d1d5db; /* Cinza borda */
+  border-radius: 8px;
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  
+  /* Remove estilo padrão do browser */
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Estado de Foco (Acessibilidade e UX) */
+.react-datepicker-wrapper input:focus {
+  border-color: #667eea;
+  outline: 0;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
+}
+
+/* Estado Desabilitado */
+.react-datepicker-wrapper input:disabled {
+  background-color: #f3f4f6;
+  opacity: 1;
+  cursor: not-allowed;
+}
+
+/* =========================================
+   2. Ícone de Calendário
+   ========================================= */
+
+.datepicker-icon {
+  position: absolute;
+  right: 14px; /* Espaçamento da direita */
+  top: 50%;
+  transform: translateY(-50%); /* Centralização Vertical Perfeita */
+  
+  color: #9ca3af; /* Cinza suave */
+  font-size: 1.1rem;
+  pointer-events: none; /* Importante: permite clicar no input "através" do ícone */
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ajuste do botão "X" (Clear) nativo do React Datepicker */
+.react-datepicker__close-icon {
+  right: 40px !important; /* Move o X para a esquerda do nosso ícone */
+  height: 100%; /* Centraliza na altura */
+}
+.react-datepicker__close-icon::after {
+  background-color: #667eea !important; /* Cor do botão X */
+  font-size: 1.2rem !important;
+}
+
+/* =========================================
+   3. O Calendário (Popup)
+   ========================================= */
+
+.react-datepicker-popper {
+  z-index: 9999 !important; /* Garante que fique acima de tudo */
+  padding-top: 8px; /* Pequeno espaço entre input e calendário */
+}
+
+.react-datepicker {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  overflow: hidden;
+}
+
+.react-datepicker__triangle {
+  left: 50% !important;
+}
+
+/* Cabeçalho */
+.react-datepicker__header {
+  background-color: #ffffff !important;
+  border-bottom: 1px solid #f3f4f6 !important;
+  padding-top: 1rem !important;
+}
+
+.react-datepicker__header__dropdown--select {
+  margin-top: 0.5rem !important;
+}
+
+.react-datepicker__month-select,
+.react-datepicker__year-select {
+  border: 1px solid #d1d5db !important;
+  border-radius: 6px !important;
+  padding: 0.25rem 0.5rem !important;
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+  color: #374151 !important;
+}
+
+.react-datepicker__current-month {
+  color: #1f2937 !important;
+  font-weight: 700 !important;
+  font-size: 1rem !important;
+  margin-bottom: 0.5rem;
+}
+
+/* Dias da semana */
+.react-datepicker__day-name {
+  color: #6b7280 !important;
+  font-weight: 600 !important;
+  width: 2.3rem !important; /* Largura fixa para alinhamento */
+}
+
+/* Células de dia */
+.react-datepicker__day {
+  width: 2.3rem !important;
+  height: 2.3rem !important;
+  line-height: 2.3rem !important;
+  margin: 0.15rem !important;
+  border-radius: 9999px !important; /* Totalmente redondo */
+  font-weight: 500;
+  color: #374151 !important;
+}
+
+/* Hover nos dias */
+.react-datepicker__day:hover:not(.react-datepicker__day--disabled) {
+  background-color: #f3f4f6 !important;
+  color: #111827 !important;
+}
+
+/* Dia Selecionado */
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected {
+  background-color: #667eea !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 6px rgba(102, 126, 234, 0.4);
+}
+
+/* Dia de Hoje */
+.react-datepicker__day--today {
+  position: relative;
+  font-weight: bold !important;
+}
+/* Ponto indicador abaixo do dia de hoje */
+.react-datepicker__day--today::after { 
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  background-color: #667eea;
+  border-radius: 50%;
+}
+.react-datepicker__day--selected::after {
+  background-color: #fff; /* Muda a cor do ponto se selecionado */
+}
+
+/* Setas de navegação */
+.react-datepicker__navigation {
+  top: 14px !important;
+}
+
+/* =========================================
+   5. Foco no Mês Selecionado (Highlight)
+   ========================================= */
+
+/* 1. Estilo padrão para dias do MÊS ATUAL */
+.react-datepicker__day:not(.react-datepicker__day--outside-month) {
+  color: #1f2937 !important; /* Cor escura e nítida */
+  font-weight: 500;
+}
+
+/* 2. Estilo para dias de OUTROS MESES (Anterior/Próximo) */
+.react-datepicker__day--outside-month {
+  color: #e5e7eb !important; /* Cinza muito claro, quase invisível */
+  pointer-events: none !important; /* Impede o clique nessas datas */
+  cursor: default !important;
+}
+
+/* 3. Remove o fundo cinza ao passar o mouse em dias de outros meses */
+.react-datepicker__day--outside-month:hover {
+  background-color: transparent !important;
+  cursor: default !important;
+}
+
+/* OPCIONAL: Se você preferir que os dias de fora desapareçam 
+   completamente (fiquem brancos), use este código abaixo 
+   NO LUGAR do código acima:
+*/
+/*
+.react-datepicker__day--outside-month {
+   visibility: hidden !important; 
+}
+*/
+
+/* =========================================
+   4. Responsividade: DATEPICKER COMO MODAL
+   ========================================= */
+
+@media (max-width: 450px) {
+
+  /* 1. O CONTAINER DO POPUP (A MÁGICA DA MODAL)
+     Forçamos o container a ficar fixo no centro da tela.
+  */
+  .react-datepicker-popper {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important; /* Centraliza exato */
+    
+    /* Removemos width/height para o conteúdo ditar o tamanho */
+    width: auto !important;
+    height: auto !important;
+    
+    /* Reset de margens e paddings */
+    margin: 0 !important;
+    padding: 0 !important;
+    
+    /* BACKDROP (Fundo Escuro) */
+    /* Usamos box-shadow gigante para criar o fundo escuro sem criar nova div.
+       Clicar nesse fundo escuro fecha a modal nativamente pelo DatePicker. */
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5) !important;
+    
+    /* Garante que fique acima de qualquer outra modal do sistema */
+    z-index: 10000 !important; 
+    border-radius: 12px !important;
+  }
+
+  /* 2. O CARTÃO DO CALENDÁRIO */
+  .react-datepicker {
+    width: 320px !important; /* Largura segura para iPhone SE */
+    max-width: 90vw !important; /* Margem de segurança */
+    
+    /* Aparência de Modal */
+    background-color: #fff;
+    border-radius: 12px;
+    border: none !important;
+    
+    /* Sombra do cartão (elevação) */
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+    
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Garante que bordas arredondadas funcionem */
+  }
+
+  /* Container interno */
+  .react-datepicker__month-container {
+    width: 100% !important;
+    float: none !important;
+  }
+
+  /* Header (Mês/Ano) */
+  .react-datepicker__header {
+    background-color: #fff !important;
+    border-bottom: 1px solid #f3f4f6 !important;
+    padding-top: 15px !important;
+  }
+
+  /* 3. TAMANHO DOS DIAS 
+     Ajustado para caber em 320px sem quebrar.
+  */
+  .react-datepicker__day {
+    width: 2rem !important;       
+    height: 2rem !important;      
+    line-height: 2rem !important; 
+    margin: 0.15rem !important;   
+    font-size: 0.95rem !important;
+  }
+
+  .react-datepicker__day-name {
+    width: 2rem !important;
+    margin: 0.15rem !important;
+    font-size: 0.85rem !important;
+  }
+
+  /* Aumenta área de toque das setas de navegação */
+  .react-datepicker__navigation {
+    top: 12px !important;
+    width: 30px;
+    height: 30px;
+  }
+
+  .react-datepicker__triangle {
+    display: none !important;
+  }
+}
+
+/* =========================================
+   Dark Mode Overrides
+   ========================================= */
+
+[data-theme='dark'] .react-datepicker-wrapper input {
+  color: var(--text-primary);
+  background-color: var(--bg-input);
+  border-color: var(--border-primary);
+}
+
+[data-theme='dark'] .react-datepicker-wrapper input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.25);
+}
+
+[data-theme='dark'] .react-datepicker-wrapper input:disabled {
+  background-color: var(--bg-surface-secondary);
+}
+
+[data-theme='dark'] .datepicker-icon {
+  color: var(--text-muted);
+}
+
+[data-theme='dark'] .react-datepicker__close-icon::after {
+  background-color: var(--color-primary) !important;
+}
+
+[data-theme='dark'] .react-datepicker {
+  background-color: var(--bg-surface) !important;
+  border-color: var(--border-primary) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme='dark'] .react-datepicker__header {
+  background-color: var(--bg-surface-secondary) !important;
+  border-bottom-color: var(--border-primary) !important;
+}
+
+[data-theme='dark'] .react-datepicker__current-month {
+  color: var(--text-primary) !important;
+}
+
+[data-theme='dark'] .react-datepicker__day-name {
+  color: var(--text-muted) !important;
+}
+
+[data-theme='dark'] .react-datepicker__month-select,
+[data-theme='dark'] .react-datepicker__year-select {
+  background-color: var(--bg-input);
+  color: var(--text-primary) !important;
+  border-color: var(--border-primary) !important;
+}
+
+[data-theme='dark'] .react-datepicker__day {
+  color: var(--text-primary) !important;
+}
+
+[data-theme='dark'] .react-datepicker__day:hover:not(.react-datepicker__day--disabled) {
+  background-color: var(--bg-surface-hover) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme='dark'] .react-datepicker__day--selected,
+[data-theme='dark'] .react-datepicker__day--keyboard-selected {
+  background-color: var(--color-primary) !important;
+  color: #ffffff !important;
+}
+
+[data-theme='dark'] .react-datepicker__day--today::after {
+  background-color: var(--color-primary);
+}
+
+[data-theme='dark'] .react-datepicker__day:not(.react-datepicker__day--outside-month) {
+  color: var(--text-primary) !important;
+}
+
+[data-theme='dark'] .react-datepicker__day--outside-month {
+  color: var(--border-primary) !important;
+}
+
+[data-theme='dark'] .react-datepicker__navigation-icon::before {
+  border-color: var(--text-muted) !important;
+}
+
+[data-theme='dark'] .react-datepicker__navigation:hover .react-datepicker__navigation-icon::before {
+  border-color: var(--text-primary) !important;
+}
+
+@media (max-width: 450px) {
+  [data-theme='dark'] .react-datepicker {
+    background-color: var(--bg-surface) !important;
+  }
+
+  [data-theme='dark'] .react-datepicker__header {
+    background-color: var(--bg-surface-secondary) !important;
+    border-bottom-color: var(--border-primary) !important;
+  }
+}

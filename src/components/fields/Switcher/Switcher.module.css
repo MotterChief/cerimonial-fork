@@ -1,0 +1,44 @@
+.switcherContainer {
+    margin-bottom: 15px;
+}
+
+.label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.buttonGroup {
+    display: flex;
+    border-radius: 8px;
+    overflow: hidden;
+    width: 100%;
+}
+
+.button {
+    flex-grow: 1;
+    padding: 10px 15px;
+    border: none;
+    font-weight: bold;
+    background-color: var(--switcher-bg);
+    color: var(--switcher-text);
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+    font-size: 14px;
+    outline: none;
+}
+
+.button.active {
+    background-color: var(--color-primary);
+    color: var(--text-on-primary);
+    font-weight: bold;
+}
+
+.button:not(.active):hover {
+    background-color: var(--switcher-hover-bg);
+    color: var(--text-on-primary);
+    font-weight: bold;
+    
+}

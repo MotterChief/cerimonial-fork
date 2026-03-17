@@ -1,0 +1,45 @@
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+}
+
+.title {
+  margin: 0; /* Remove margens padrão do h3 */
+  display: flex;
+  align-items: center;
+}
+
+.icon {
+  transition: transform 0.3s ease-in-out;
+  font-size: 0.9em; /* Ajusta o tamanho do ícone de seta */
+  margin-left: 10px;
+}
+
+.iconClosed {
+  transform: rotate(-90deg);
+}
+
+
+.content {
+  padding-top: 15px; /* Adiciona um espaçamento entre o header e o conteúdo */
+}
+
+.collapsibleHeader {
+  cursor: pointer;
+}
+
+.flexContent {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-height: 0; /* Crucial para que o item flexível possa encolher */
+  padding-bottom: 0; /* Garante que o padding não cause overflow */
+}
+
+.counter {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-left: 10px;
+}

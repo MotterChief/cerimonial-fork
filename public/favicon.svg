@@ -1,0 +1,21 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="cal-grid-grad" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#667eea"/>
+      <stop offset="1" stop-color="#764ba2"/>
+    </linearGradient>
+  </defs>
+  
+  <rect width="64" height="64" rx="16" fill="url(#cal-grid-grad)"/>
+
+  <rect x="10" y="14" width="44" height="42" rx="4" fill="#fff"/>
+
+  <path d="M20 8V18" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+  <path d="M44 8V18" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+
+  <g stroke="#667eea" stroke-width="4" stroke-linecap="round">
+    <path d="M16 30H22"/> <path d="M29 30H35"/> <path d="M42 30H48"/>
+    <path d="M16 38H22"/> <path d="M29 38H35"/> <path d="M42 38H48"/>
+    <path d="M16 46H22"/> <path d="M29 46H35"/> <path d="M42 46H48"/>
+  </g>
+</svg>

@@ -1,0 +1,71 @@
+.observationEditor {
+  margin: 20px 0px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-light);
+}
+
+.observationEditor > label {
+  display: block;
+  margin-bottom: 15px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.observationItem {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.observationItem input {
+  flex: 1;
+  min-width: 100px;
+  padding: 12px;
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  font-size: 14px;
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+}
+
+.observationItem input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.2);
+}
+
+.observationEditor {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-light);
+}
+
+.observationEditor label {
+  display: block;
+  margin-bottom: 15px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.observationItem {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.observationItem input {
+  flex: 1;
+  min-width: 120px;
+  padding: 12px;
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.observationItem input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.2);
+}
