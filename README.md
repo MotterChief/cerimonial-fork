@@ -2,6 +2,8 @@
 
 Sistema completo de gestão para cerimonialistas, desenvolvido com Next.js 16, React 19, TypeScript e Firebase. Centraliza o controle de eventos, clientes, fornecedores, financeiro e muito mais em uma única plataforma.
 
+**Algumas informações foram ocultadas por questões de segurança!**
+
 ---
 
 ## Funcionalidades
@@ -65,19 +67,6 @@ cd cerimonial-fork
 npm install
 ```
 
-### Variáveis de ambiente
-
-Crie um arquivo `.env.local` na raiz com as credenciais do seu projeto Firebase:
-
-```env
-NEXT_PUBLIC_FIREBASE_API_KEY=
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
-NEXT_PUBLIC_FIREBASE_APP_ID=
-```
-
 ### Rodando
 
 ```bash
@@ -87,12 +76,6 @@ npm run lint     # Lint
 ```
 
 Acesse [http://localhost:3000](http://localhost:3000).
-
----
-
-## Deploy
-
-O projeto pode ser publicado na [Vercel](https://vercel.com) com zero configuração. Basta conectar o repositório e adicionar as variáveis de ambiente no painel.
 
 ---
 
