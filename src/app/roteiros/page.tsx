@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { useDemoGuard } from '@/utils/useDemoGuard';
 import { getEvents, Event } from '@/services/event.service';
 import CustomSelect from '@/components/Select';
 import { createRoteiro, getRoteirosByEvent } from '@/services/script.service';
@@ -22,6 +23,7 @@ interface Roteiro extends AbstractEntity {
 export default function RoteirosPage() {
   const { user } = useAuth();
   const { addNotification } = useNotification();
+  const guard = useDemoGuard();
   const [events, setEvents] = useState<Event[]>([]);
   const [eventId, setSelectedEventId] = useState<string | null>(null);
   const [scripts, setScripts] = useState<Roteiro[]>([]);
@@ -34,29 +36,31 @@ export default function RoteirosPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !user.uid) {
-        addNotification('Usuário não autenticado.', 'error');
-        return;
+      addNotification('Usuário não autenticado.', 'error');
+      return;
     }
     if (!eventId) {
-        addNotification('Por favor, selecione um evento para criar um roteiro.', 'warning');
-        return;
+      addNotification('Por favor, selecione um evento para criar um roteiro.', 'warning');
+      return;
     }
     if (!name) {
       addNotification('Por favor, preencha o nome do roteiro para criá-lo.', 'warning');
       return;
     }
-    try {
-      await createRoteiro(user.uid, {
-        eventId,
-        name
-      });
-      setName(''); 
-      refreshScripts();
-      addNotification('Roteiro criado com sucesso!', 'success');
-    } catch (error) {
-      console.error('Failed to add script:', error);
-      addNotification('Erro ao adicionar roteiro.', 'error');
-    }
+    await guard(async () => {
+      try {
+        await createRoteiro(user.uid, {
+          eventId,
+          name,
+        });
+        setName('');
+        refreshScripts();
+        addNotification('Roteiro criado com sucesso!', 'success');
+      } catch (error) {
+        console.error('Failed to add script:', error);
+        addNotification('Erro ao adicionar roteiro.', 'error');
+      }
+    });
   };
 
   const refreshScripts = useCallback(async () => {
