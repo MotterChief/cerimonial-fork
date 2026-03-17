@@ -298,12 +298,13 @@ export default function ConvidadosPage() {
 
   const openQrModal = useCallback(async () => {
     if (!user || !selectedEventId || !selectedEvent) return;
-    setIsQrModalOpen(true);
     const token = selectedEvent.publicToken;
     if (token) {
+      setIsQrModalOpen(true);
       await renderQr(token);
     } else {
       await guard(async () => {
+        setIsQrModalOpen(true);
         try {
           setQrSyncing(true);
           const newToken = await generatePublicPage(user.uid, selectedEventId, selectedEvent.eventName, guests, tables);
