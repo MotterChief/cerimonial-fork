@@ -6,6 +6,7 @@ import ConfirmActionModal from '../ConfirmActionModal';
 import { CHECKLIST_PERIODS, periodNameByKey } from '@/app/checklists/checklist.config';
 import { useNotification } from '@/context/NotificationContext';
 import { useAuth } from '@/context/AuthContext';
+import { useDemoGuard } from '@/utils/useDemoGuard';
 
 interface ChecklistDisplayProps {
   items: ChecklistItem[];
@@ -17,17 +18,20 @@ const ChecklistDisplay: React.FC<ChecklistDisplayProps> = ({ items, onItemUpdate
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const { addNotification } = useNotification();
+  const guard = useDemoGuard();
 
 
   const handleStatusChange = async (itemId: string, currentStatus: boolean) => {
     if (user && !user.uid || !user) return;
-    try {
-      await updateChecklistItemStatus(user.uid, itemId, !currentStatus);
-      onItemUpdate();
-    } catch (error) {
-      console.error('Failed to update item status:', error);
-      addNotification('Erro ao atualizar a tarefa.', 'error');
-    }
+    await guard(async () => {
+      try {
+        await updateChecklistItemStatus(user.uid, itemId, !currentStatus);
+        onItemUpdate();
+      } catch (error) {
+        console.error('Failed to update item status:', error);
+        addNotification('Erro ao atualizar a tarefa.', 'error');
+      }
+    });
   };
 
   const handleDeleteClick = (itemId: string) => {
@@ -37,16 +41,18 @@ const ChecklistDisplay: React.FC<ChecklistDisplayProps> = ({ items, onItemUpdate
 
   const handleConfirmDelete = async () => {
     if (!selectedItemId || (user && !user.uid || !user)) return;
-    try {
-      await deleteChecklistItem(user.uid, selectedItemId);
-      onItemUpdate();
-      setIsModalOpen(false);
-      setSelectedItemId(null);
-      addNotification('Tarefa excluída com sucesso!', 'success');
-    } catch (error) {
-      console.error('Failed to delete item:', error);
-      addNotification('Erro ao deletar a tarefa.', 'error');
-    }
+    await guard(async () => {
+      try {
+        await deleteChecklistItem(user.uid, selectedItemId);
+        onItemUpdate();
+        setIsModalOpen(false);
+        setSelectedItemId(null);
+        addNotification('Tarefa excluída com sucesso!', 'success');
+      } catch (error) {
+        console.error('Failed to delete item:', error);
+        addNotification('Erro ao deletar a tarefa.', 'error');
+      }
+    });
   };
 
   const groupedItems = items.reduce((acc, item) => {
