@@ -1,36 +1,101 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CerimoniasPro
 
-## Getting Started
+Sistema completo de gestão para cerimonialistas, desenvolvido com Next.js 16, React 19, TypeScript e Firebase. Centraliza o controle de eventos, clientes, fornecedores, financeiro e muito mais em uma única plataforma.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Funcionalidades
+
+- **Agenda** — Visualização e gestão de todos os eventos agendados
+- **Clientes** — Cadastro e histórico completo de clientes
+- **Convidados** — Gerenciamento de listas de convidados com geração de QR Code para confirmação de presença
+- **Mesas** — Montagem do mapa de mesas com drag-and-drop para alocação de convidados
+- **Checklists** — Templates reutilizáveis e checklists personalizados por evento
+- **Roteiros** — Criação e gestão de roteiros detalhados para cerimônias
+- **Fornecedores** — Cadastro de prestadores de serviço com contatos e especialidades
+- **Financeiro** — Controle de receitas, despesas e fluxo de caixa por evento
+- **Documentos** — Armazenamento e organização de documentos por evento
+- **Tema Dark/Light** — Alternância de tema com persistência de preferência
+
+---
+
+## Stack
+
+| Camada | Tecnologia |
+|---|---|
+| Framework | Next.js 16 (App Router) |
+| UI | React 19 + TypeScript 5 |
+| Backend / Auth | Firebase 12 (Firestore + Authentication) |
+| Animações | Framer Motion |
+| Drag & Drop | dnd-kit |
+| Tema | next-themes |
+| Utilitários | date-fns, react-select, react-datepicker, qrcode |
+
+---
+
+## Arquitetura
+
+```
+src/
+├── app/             # Rotas (App Router) — cada pasta é uma rota
+├── components/      # Componentes reutilizáveis
+├── context/         # React Contexts (Auth, Notifications)
+├── entities/        # Interfaces base (AbstractEntity)
+├── services/        # CRUD Firestore por entidade
+├── utils/           # Funções utilitárias
+└── lib/             # Configuração do Firebase
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Toda a persistência é feita no Firestore sob o path `users/{userId}/[collection]`, garantindo isolamento total dos dados por usuário. Eventos possuem subcoleções próprias para convidados e mesas.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Configuração local
 
-## Learn More
+### Pré-requisitos
 
-To learn more about Next.js, take a look at the following resources:
+- Node.js 18+
+- Projeto no [Firebase Console](https://console.firebase.google.com) com Firestore e Authentication habilitados
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Instalação
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+git clone https://github.com/seu-usuario/cerimonial-fork.git
+cd cerimonial-fork
+npm install
+```
 
-## Deploy on Vercel
+### Variáveis de ambiente
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Crie um arquivo `.env.local` na raiz com as credenciais do seu projeto Firebase:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```env
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+```
+
+### Rodando
+
+```bash
+npm run dev      # Servidor de desenvolvimento (Turbopack)
+npm run build    # Build de produção
+npm run lint     # Lint
+```
+
+Acesse [http://localhost:3000](http://localhost:3000).
+
+---
+
+## Deploy
+
+O projeto pode ser publicado na [Vercel](https://vercel.com) com zero configuração. Basta conectar o repositório e adicionar as variáveis de ambiente no painel.
+
+---
+
+## Licença
+
+Este projeto é disponibilizado **exclusivamente como demonstração de portfólio**. Foi desenvolvido sob encomenda para um cliente específico e **não pode ser reutilizado, copiado ou adaptado** para outros projetos sem autorização expressa do autor.
