@@ -14,10 +14,12 @@ import PhoneInput from '@/components/fields/PhoneInput';
 import TextArea from '@/components/fields/TextArea';
 import { applyPhoneMask } from '@/utils/phone.utils';
 import { formatCurrency } from '@/utils/currency.utils';
+import { useDemoGuard } from '@/utils/useDemoGuard';
 
 export default function ClientesPage() {
   const { user } = useAuth();
   const { addNotification } = useNotification();
+  const guard = useDemoGuard();
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -63,15 +65,16 @@ export default function ClientesPage() {
       addNotification('Por favor, preencha pelo menos o telefone ou o email do cliente para cadastrá-lo.', 'warning');
       return;
     }
-
-    try {
-      await addClient(user.uid, newClient);
-      setNewClient(initialFormState);
-      fetchClients();
-      addNotification('Cliente adicionado com sucesso!', 'success');
-    } catch (error) {
-      addNotification((error as Error).message, 'error');
-    }
+    await guard(async () => {
+      try {
+        await addClient(user.uid, newClient);
+        setNewClient(initialFormState);
+        fetchClients();
+        addNotification('Cliente adicionado com sucesso!', 'success');
+      } catch (error) {
+        addNotification((error as Error).message, 'error');
+      }
+    });
   };
 
   const handleDeleteRequest = (client: Client) => {
@@ -81,16 +84,18 @@ export default function ClientesPage() {
 
   const handleDeleteConfirm = async () => {
     if (!user || !clientToDelete) return;
-    try {
-      await deleteClient(user.uid, clientToDelete.id);
-      fetchClients();
-      addNotification('Cliente excluído com sucesso!', 'success');
-    } catch (error) {
-      addNotification((error as Error).message, 'error');
-    } finally {
-      setDeleteModalOpen(false);
-      setClientToDelete(null);
-    }
+    await guard(async () => {
+      try {
+        await deleteClient(user.uid, clientToDelete.id);
+        fetchClients();
+        addNotification('Cliente excluído com sucesso!', 'success');
+      } catch (error) {
+        addNotification((error as Error).message, 'error');
+      } finally {
+        setDeleteModalOpen(false);
+        setClientToDelete(null);
+      }
+    });
   };
 
   const openEditModal = (client: Client) => {
@@ -101,16 +106,18 @@ export default function ClientesPage() {
   const handleUpdateClient = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !editingClient) return;
-    try {
-      const { id, ...clientData } = editingClient;
-      await updateClient(user.uid, id, clientData);
-      setIsModalOpen(false);
-      setEditingClient(null);
-      fetchClients();
-      addNotification('Cliente atualizado com sucesso!', 'success');
-    } catch (error) {
-      addNotification((error as Error).message, 'error');
-    }
+    await guard(async () => {
+      try {
+        const { id, ...clientData } = editingClient;
+        await updateClient(user.uid, id, clientData);
+        setIsModalOpen(false);
+        setEditingClient(null);
+        fetchClients();
+        addNotification('Cliente atualizado com sucesso!', 'success');
+      } catch (error) {
+        addNotification((error as Error).message, 'error');
+      }
+    });
   };
 
   // Filtra os clientes baseado no searchTerm
