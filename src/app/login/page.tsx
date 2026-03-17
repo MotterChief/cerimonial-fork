@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { createUser, signInUser, sendPasswordReset } from '@/services/user.service';
 import { useRouter } from 'next/navigation';
 import { useNotification } from '@/context/NotificationContext';
+import { useDemoGuard } from '@/utils/useDemoGuard';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -22,6 +23,7 @@ export default function LoginPage() {
   });
   const router = useRouter();
   const { addNotification } = useNotification();
+  const guard = useDemoGuard();
 
   const passwordTipsUlStyle = {
     listStyle: 'none',
@@ -97,20 +99,22 @@ export default function LoginPage() {
       return;
     }
 
-    const result = await createUser(email, password);
-    if (result.success) {
-      setError('');
-      addNotification('Usuário criado com sucesso!', 'success');
-      router.push('/');
-    } else {
-      if (!email) {
-        setError('O email é obrigatório para criar a conta!');
-      } else if (result.error === "Firebase: Error (auth/email-already-in-use).") {
-        setError("Este email já está em uso!");
+    await guard(async () => {
+      const result = await createUser(email, password);
+      if (result.success) {
+        setError('');
+        addNotification('Usuário criado com sucesso!', 'success');
+        router.push('/');
       } else {
-        setError("Erro ao criar usuário: " + result.error);
+        if (!email) {
+          setError('O email é obrigatório para criar a conta!');
+        } else if (result.error === "Firebase: Error (auth/email-already-in-use).") {
+          setError("Este email já está em uso!");
+        } else {
+          setError("Erro ao criar usuário: " + result.error);
+        }
       }
-    }
+    });
   };
 
   const handleSignIn = async () => {
@@ -138,18 +142,20 @@ export default function LoginPage() {
     if (msgEmail) {
       addNotification(msgEmail, 'error');
       return;
-    } 
-    addNotification('Enviando e-mail de redefinição...', 'warning');
-    const result = await sendPasswordReset(email);
-    if (result.success) {
-      addNotification('E-mail de redefinição enviado! Verifique sua caixa de entrada ou spam.', 'success');
-    } else {
-      if (result.error?.includes('auth/user-not-found')) {
-        addNotification('Este e-mail não foi encontrado em nosso sistema.', 'error');
-      } else {
-        addNotification('Ocorreu um erro ao tentar enviar o e-mail de redefinição.', 'error');
-      }
     }
+    await guard(async () => {
+      addNotification('Enviando e-mail de redefinição...', 'warning');
+      const result = await sendPasswordReset(email);
+      if (result.success) {
+        addNotification('E-mail de redefinição enviado! Verifique sua caixa de entrada ou spam.', 'success');
+      } else {
+        if (result.error?.includes('auth/user-not-found')) {
+          addNotification('Este e-mail não foi encontrado em nosso sistema.', 'error');
+        } else {
+          addNotification('Ocorreu um erro ao tentar enviar o e-mail de redefinição.', 'error');
+        }
+      }
+    });
   }
 
   const validatePassword = (pass: string) => {
