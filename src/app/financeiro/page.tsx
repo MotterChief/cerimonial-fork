@@ -9,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { getEvents } from '@/services/event.service';
 import { getClients, updateClient, Client, Installment } from '@/services/client.service';
 import { useNotification } from '@/context/NotificationContext';
+import { useDemoGuard } from '@/utils/useDemoGuard';
 
 interface FinancialData {
   totalRevenue: number;
@@ -32,6 +33,7 @@ interface Contract {
 export default function FinanceiroPage() {
   const { user } = useAuth();
   const { addNotification } = useNotification();
+  const guard = useDemoGuard();
   const [financials, setFinancials] = useState<FinancialData>({ totalRevenue: 0, dueInstallments: 0, upcomingInstallments: 0, doneInstallments: 0, receivable: 0, paid: 0 });
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
@@ -103,27 +105,14 @@ export default function FinanceiroPage() {
     const { type, value, contractId } = newTransaction;
     const transactionValue = parseFloat(value);
 
-    if (!user) {
-      addNotification('Usuário não autenticado!', 'error');
-      return;
-    }
-
-    if (!contractId || isNaN(transactionValue)) {
-      addNotification('Por favor, preencha todos os campos corretamente.', 'error');
-      return;
-    }
+    if (!user) { addNotification('Usuário não autenticado!', 'error'); return; }
+    if (!contractId || isNaN(transactionValue)) { addNotification('Por favor, preencha todos os campos corretamente.', 'error'); return; }
 
     const contractToUpdate = contracts.find(c => c.id === contractId);
-    if (!contractToUpdate) {
-      addNotification('Contrato não encontrado!', 'error');
-      return;
-    }
+    if (!contractToUpdate) { addNotification('Contrato não encontrado!', 'error'); return; }
 
     const clientToUpdate = clients.find(c => c.id === contractToUpdate.clientId);
-    if (!clientToUpdate) {
-      addNotification('Cliente não encontrado!', 'error');
-      return;
-    }
+    if (!clientToUpdate) { addNotification('Cliente não encontrado!', 'error'); return; }
 
     let updatedInstallments = JSON.parse(JSON.stringify(clientToUpdate.installments || []));
     let newPaidValue = Number(clientToUpdate.paidValue || 0);
@@ -153,106 +142,73 @@ export default function FinanceiroPage() {
       }
     }
 
-        await updateClient(user.uid, clientToUpdate.id, {
-          name: clientToUpdate.name,
-          installments: updatedInstallments,
-          paidValue: newPaidValue,
-          budget: newTotalValue
-        });
-    setClients(prevClients =>
-      prevClients.map(client => {
-        if (client.id === clientToUpdate.id) {
-          return { ...client, installments: updatedInstallments, paidValue: newPaidValue, budget: newTotalValue };
-        }
-        return client;
-      })
-    );
-
-    setContracts(prevContracts =>
-      prevContracts.map(contract => {
-        if (contract.id === contractId) {
-          return { ...contract, installments: updatedInstallments, paidValue: newPaidValue, totalValue: newTotalValue };
-        }
-        return contract;
-      })
-    );
-
-    addNotification('Movimentação salva com sucesso!', 'success');
-    setNewTransaction({ type: 'receita', value: '', description: '', contractId: '', date: '' });
+    await guard(async () => {
+      await updateClient(user.uid, clientToUpdate.id, {
+        name: clientToUpdate.name,
+        installments: updatedInstallments,
+        paidValue: newPaidValue,
+        budget: newTotalValue,
+      });
+      setClients(prevClients =>
+        prevClients.map(client =>
+          client.id === clientToUpdate.id
+            ? { ...client, installments: updatedInstallments, paidValue: newPaidValue, budget: newTotalValue }
+            : client
+        )
+      );
+      setContracts(prevContracts =>
+        prevContracts.map(contract =>
+          contract.id === contractId
+            ? { ...contract, installments: updatedInstallments, paidValue: newPaidValue, totalValue: newTotalValue }
+            : contract
+        )
+      );
+      addNotification('Movimentação salva com sucesso!', 'success');
+      setNewTransaction({ type: 'receita', value: '', description: '', contractId: '', date: '' });
+    });
   };
 
   const handleUpdateInstallment = async (contractId: string, installmentIndex: number, updatedInstallment: Installment) => {
     const contractToUpdate = contracts.find(c => c.id === contractId);
-
-    if (!user) {
-      addNotification('Usuário não autenticado!', 'error');
-      return;
-    }
-
-    if (!contractToUpdate) {
-      addNotification('Contrato não encontrado!', 'error');
-      return;
-    }
+    if (!user) { addNotification('Usuário não autenticado!', 'error'); return; }
+    if (!contractToUpdate) { addNotification('Contrato não encontrado!', 'error'); return; }
 
     const clientToUpdate = clients.find(c => c.id === contractToUpdate.clientId);
-    if (!clientToUpdate) {
-      addNotification('Cliente não encontrado!', 'error');
-      return;
-    }
+    if (!clientToUpdate) { addNotification('Cliente não encontrado!', 'error'); return; }
 
     const updatedInstallments = [...(clientToUpdate.installments || [])];
     updatedInstallments[installmentIndex] = updatedInstallment;
+    const newPaidValue = updatedInstallments.reduce(
+      (acc, installment) => installment.status === 'paga' ? acc + installment.value : acc,
+      0
+    );
 
-    const newPaidValue = updatedInstallments.reduce((acc, installment) => {
-      if (installment.status === 'paga') {
-        return acc + installment.value;
-      }
-      return acc;
-    }, 0);
-
-    await updateClient(user.uid, clientToUpdate.id, {
-      name: clientToUpdate.name,
-      installments: updatedInstallments,
-      paidValue: newPaidValue
+    await guard(async () => {
+      await updateClient(user.uid, clientToUpdate.id, {
+        name: clientToUpdate.name,
+        installments: updatedInstallments,
+        paidValue: newPaidValue,
+      });
+      setClients(prevClients =>
+        prevClients.map(client =>
+          client.id === clientToUpdate.id ? { ...client, installments: updatedInstallments, paidValue: newPaidValue } : client
+        )
+      );
+      setContracts(prevContracts =>
+        prevContracts.map(contract =>
+          contract.id === contractId ? { ...contract, installments: updatedInstallments, paidValue: newPaidValue } : contract
+        )
+      );
     });
-
-    setClients(prevClients =>
-      prevClients.map(client => {
-        if (client.id === clientToUpdate.id) {
-          return { ...client, installments: updatedInstallments, paidValue: newPaidValue };
-        }
-        return client;
-      })
-    );
-
-    setContracts(prevContracts =>
-      prevContracts.map(contract => {
-        if (contract.id === contractId) {
-          return { ...contract, installments: updatedInstallments, paidValue: newPaidValue };
-        }
-        return contract;
-      })
-    );
   };
 
   const handleGenerateInstallments = async (contractId: string, installments: number, totalValue: number, dueDay: number) => {
     const contractToUpdate = contracts.find(c => c.id === contractId);
-
-    if (!user) {
-      addNotification('Usuário não autenticado!', 'error');
-      return;
-    }
-
-    if (!contractToUpdate) {
-      addNotification('Contrato não encontrado!', 'error');
-      return;
-    }
+    if (!user) { addNotification('Usuário não autenticado!', 'error'); return; }
+    if (!contractToUpdate) { addNotification('Contrato não encontrado!', 'error'); return; }
 
     const clientToUpdate = clients.find(c => c.id === contractToUpdate.clientId);
-    if (!clientToUpdate) {
-      addNotification('Cliente não encontrado!', 'error');
-      return;
-    }
+    if (!clientToUpdate) { addNotification('Cliente não encontrado!', 'error'); return; }
 
     const newInstallments: Installment[] = [];
     if (installments > 0) {
@@ -268,28 +224,22 @@ export default function FinanceiroPage() {
       }
     }
 
-    await updateClient(user.uid, clientToUpdate.id, {
-      name: clientToUpdate.name,
-      installments: newInstallments
+    await guard(async () => {
+      await updateClient(user.uid, clientToUpdate.id, {
+        name: clientToUpdate.name,
+        installments: newInstallments,
+      });
+      setClients(prevClients =>
+        prevClients.map(client =>
+          client.id === clientToUpdate.id ? { ...client, installments: newInstallments } : client
+        )
+      );
+      setContracts(prevContracts =>
+        prevContracts.map(contract =>
+          contract.id === contractId ? { ...contract, installments: newInstallments } : contract
+        )
+      );
     });
-
-    setClients(prevClients =>
-      prevClients.map(client => {
-        if (client.id === clientToUpdate.id) {
-          return { ...client, installments: newInstallments };
-        }
-        return client;
-      })
-    );
-
-    setContracts(prevContracts =>
-      prevContracts.map(contract => {
-        if (contract.id === contractId) {
-          return { ...contract, installments: newInstallments };
-        }
-        return contract;
-      })
-    );
   };
 
   return (
