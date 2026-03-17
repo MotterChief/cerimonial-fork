@@ -5,6 +5,7 @@ import { addTemplate, ChecklistItem, ChecklistTemplate } from '@/services/checkl
 import { useNotification } from '@/context/NotificationContext';
 import { useAuth } from '@/context/AuthContext';
 import TextArea from '@/components/fields/TextArea';
+import { useDemoGuard } from '@/utils/useDemoGuard';
 
 interface ChecklistTemplateFormProps {
   checklistItems: ChecklistItem[];
@@ -23,6 +24,7 @@ const ChecklistTemplateForm: React.FC<ChecklistTemplateFormProps> = ({
   const [position, setPosition] = useState<number | ''>('');
   const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const guard = useDemoGuard();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,47 +40,39 @@ const ChecklistTemplateForm: React.FC<ChecklistTemplateFormProps> = ({
       addNotification('É necessário ter pelo menos 4 itens no checklist para criar um template.', 'warning');
       return;
     }
-
-    const nameExists = templates.some(
-      (t) => t.name.trim().toLowerCase() === name.trim().toLowerCase()
-    );
+    const nameExists = templates.some(t => t.name.trim().toLowerCase() === name.trim().toLowerCase());
     if (nameExists) {
       addNotification(`Já existe um template com o nome "${name}".`, 'warning');
       return;
     }
-
-    const positionExists = templates.some((t) => t.position === Number(position));
+    const positionExists = templates.some(t => t.position === Number(position));
     if (positionExists) {
       addNotification(`Já existe um template com a posição ${position}.`, 'warning');
       return;
     }
 
-    setIsSubmitting(true);
-    try {
-      const items = checklistItems.map((item) => ({
-        title: item.title,
-        period: item.period,
-        completed: false as const,
-      }));
+    const items = checklistItems.map(item => ({
+      title: item.title,
+      period: item.period,
+      completed: false as const,
+    }));
 
-      await addTemplate(user.uid, {
-        name,
-        position: Number(position),
-        description,
-        items,
-      });
-
-      setName('');
-      setPosition('');
-      setDescription('');
-      onTemplateSaved();
-      addNotification('Template salvo com sucesso!', 'success');
-    } catch (error) {
-      console.error('Erro ao salvar template:', error);
-      addNotification('Erro ao salvar template.', 'error');
-    } finally {
-      setIsSubmitting(false);
-    }
+    await guard(async () => {
+      setIsSubmitting(true);
+      try {
+        await addTemplate(user.uid, { name, position: Number(position), description, items });
+        setName('');
+        setPosition('');
+        setDescription('');
+        onTemplateSaved();
+        addNotification('Template salvo com sucesso!', 'success');
+      } catch (error) {
+        console.error('Erro ao salvar template:', error);
+        addNotification('Erro ao salvar template.', 'error');
+      } finally {
+        setIsSubmitting(false);
+      }
+    });
   };
 
   return (
