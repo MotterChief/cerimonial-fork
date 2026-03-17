@@ -21,6 +21,7 @@ import { generatePublicPage, syncPublicPage } from '@/services/publicGuestPage.s
 import QRCode from 'qrcode';
 import { pdfGuestsAccess } from '@/utils/pdfBody.utils';
 import { getSituationStyle, getBorderCardStyle } from '@/utils/situationStyles.utils';
+import { useDemoGuard } from '@/utils/useDemoGuard';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -51,6 +52,7 @@ interface EventOption {
 export default function ConvidadosPage() {
   const { user } = useAuth();
   const { addNotification } = useNotification();
+  const guard = useDemoGuard();
 
   // Event selection
   const [events, setEvents] = useState<Event[]>([]);
@@ -149,20 +151,22 @@ export default function ConvidadosPage() {
   const handleSaveGuest = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !selectedEventId) return;
-    try {
-      if (editingGuest) {
-        await updateGuest(user.uid, selectedEventId, editingGuest.id, guestForm);
-        addNotification('Convidado atualizado com sucesso!', 'success');
-      } else {
-        await addGuest(user.uid, selectedEventId, guestForm);
-        addNotification('Convidado adicionado com sucesso!', 'success');
+    await guard(async () => {
+      try {
+        if (editingGuest) {
+          await updateGuest(user.uid, selectedEventId, editingGuest.id, guestForm);
+          addNotification('Convidado atualizado com sucesso!', 'success');
+        } else {
+          await addGuest(user.uid, selectedEventId, guestForm);
+          addNotification('Convidado adicionado com sucesso!', 'success');
+        }
+        setIsGuestModalOpen(false);
+        fetchGuests(selectedEventId);
+      } catch (error) {
+        console.log(error);
+        addNotification('Erro ao salvar convidado.', 'error');
       }
-      setIsGuestModalOpen(false);
-      fetchGuests(selectedEventId);
-    } catch (error) {
-      console.log(error);
-      addNotification('Erro ao salvar convidado.', 'error');
-    }
+    });
   };
 
   const handleGuestFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -175,16 +179,18 @@ export default function ConvidadosPage() {
 
   const handleDeleteGuestConfirm = async () => {
     if (!user || !selectedEventId || !guestToDelete) return;
-    try {
-      await deleteGuest(user.uid, selectedEventId, guestToDelete.id);
-      fetchGuests(selectedEventId);
-      addNotification('Convidado removido com sucesso!', 'success');
-    } catch {
-      addNotification('Erro ao remover convidado.', 'error');
-    } finally {
-      setIsDeleteGuestOpen(false);
-      setGuestToDelete(null);
-    }
+    await guard(async () => {
+      try {
+        await deleteGuest(user.uid, selectedEventId, guestToDelete.id);
+        fetchGuests(selectedEventId);
+        addNotification('Convidado removido com sucesso!', 'success');
+      } catch {
+        addNotification('Erro ao remover convidado.', 'error');
+      } finally {
+        setIsDeleteGuestOpen(false);
+        setGuestToDelete(null);
+      }
+    });
   };
 
   // ── Table CRUD ────────────────────────────────────────────────────────────
@@ -204,19 +210,21 @@ export default function ConvidadosPage() {
   const handleSaveTable = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !selectedEventId) return;
-    try {
-      if (editingTable) {
-        await updateTable(user.uid, selectedEventId, editingTable.id, tableForm);
-        addNotification('Mesa atualizada com sucesso!', 'success');
-      } else {
-        await addTable(user.uid, selectedEventId, tableForm);
-        addNotification('Mesa criada com sucesso!', 'success');
+    await guard(async () => {
+      try {
+        if (editingTable) {
+          await updateTable(user.uid, selectedEventId, editingTable.id, tableForm);
+          addNotification('Mesa atualizada com sucesso!', 'success');
+        } else {
+          await addTable(user.uid, selectedEventId, tableForm);
+          addNotification('Mesa criada com sucesso!', 'success');
+        }
+        setIsTableModalOpen(false);
+        fetchTables(selectedEventId);
+      } catch {
+        addNotification('Erro ao salvar mesa.', 'error');
       }
-      setIsTableModalOpen(false);
-      fetchTables(selectedEventId);
-    } catch {
-      addNotification('Erro ao salvar mesa.', 'error');
-    }
+    });
   };
 
   const handleTableFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -240,32 +248,35 @@ export default function ConvidadosPage() {
 
   const handleDeleteTableConfirm = async () => {
     if (!user || !selectedEventId || !tableToDelete) return;
-    try {
-      await deleteTable(user.uid, selectedEventId, tableToDelete.id);
-      fetchTables(selectedEventId);
-      addNotification('Mesa excluída com sucesso!', 'success');
-    } catch {
-      addNotification('Erro ao excluir mesa.', 'error');
-    } finally {
-      setIsDeleteTableOpen(false);
-      setTableToDelete(null);
-    }
+    await guard(async () => {
+      try {
+        await deleteTable(user.uid, selectedEventId, tableToDelete.id);
+        fetchTables(selectedEventId);
+        addNotification('Mesa excluída com sucesso!', 'success');
+      } catch {
+        addNotification('Erro ao excluir mesa.', 'error');
+      } finally {
+        setIsDeleteTableOpen(false);
+        setTableToDelete(null);
+      }
+    });
   };
 
   // ── Drag-and-Drop ─────────────────────────────────────────────────────────
 
   const handleGuestTableChange = async (guestId: string, tableId: string | null) => {
     if (!user || !selectedEventId) return;
-    // Optimistic update
-    setGuests(prev =>
-      prev.map(g => g.id === guestId ? { ...g, tableId: tableId ?? undefined } : g)
-    );
-    try {
-      await updateGuestTable(user.uid, selectedEventId, guestId, tableId);
-    } catch {
-      addNotification('Erro ao mover convidado.', 'error');
-      fetchGuests(selectedEventId);
-    }
+    await guard(async () => {
+      setGuests(prev =>
+        prev.map(g => g.id === guestId ? { ...g, tableId: tableId ?? undefined } : g)
+      );
+      try {
+        await updateGuestTable(user.uid, selectedEventId, guestId, tableId);
+      } catch {
+        addNotification('Erro ao mover convidado.', 'error');
+        fetchGuests(selectedEventId);
+      }
+    });
   };
 
   // ── Computed: selected event (needed by QR handlers) ─────────────────────
@@ -292,38 +303,40 @@ export default function ConvidadosPage() {
     if (token) {
       await renderQr(token);
     } else {
-      // No token yet — generate one immediately
-      try {
-        setQrSyncing(true);
-        const newToken = await generatePublicPage(user.uid, selectedEventId, selectedEvent.eventName, guests, tables);
-        await updateEvent(user.uid, selectedEventId, { publicToken: newToken });
-        // Refresh event list to persist publicToken locally
-        setEvents(prev => prev.map(e => e.id === selectedEventId ? { ...e, publicToken: newToken } : e));
-        await renderQr(newToken);
-        addNotification('QR Code gerado com sucesso!', 'success');
-      } catch (error) {
-        console.error(error);
-        addNotification('Erro ao gerar QR Code.', 'error');
-      } finally {
-        setQrSyncing(false);
-      }
+      await guard(async () => {
+        try {
+          setQrSyncing(true);
+          const newToken = await generatePublicPage(user.uid, selectedEventId, selectedEvent.eventName, guests, tables);
+          await updateEvent(user.uid, selectedEventId, { publicToken: newToken });
+          setEvents(prev => prev.map(e => e.id === selectedEventId ? { ...e, publicToken: newToken } : e));
+          await renderQr(newToken);
+          addNotification('QR Code gerado com sucesso!', 'success');
+        } catch (error) {
+          console.error(error);
+          addNotification('Erro ao gerar QR Code.', 'error');
+        } finally {
+          setQrSyncing(false);
+        }
+      });
     }
-  }, [user, selectedEventId, selectedEvent, guests, tables, renderQr, addNotification]);
+  }, [user, selectedEventId, selectedEvent, guests, tables, renderQr, addNotification, guard]);
 
   const handleSyncQr = useCallback(async () => {
     if (!user || !selectedEventId || !selectedEvent) return;
     const token = selectedEvent.publicToken;
     if (!token) return;
-    setQrSyncing(true);
-    try {
-      await syncPublicPage(token, selectedEvent.eventName, guests, tables);
-      addNotification('Dados sincronizados com sucesso!', 'success');
-    } catch {
-      addNotification('Erro ao sincronizar dados.', 'error');
-    } finally {
-      setQrSyncing(false);
-    }
-  }, [user, selectedEventId, selectedEvent, guests, tables, addNotification]);
+    await guard(async () => {
+      setQrSyncing(true);
+      try {
+        await syncPublicPage(token, selectedEvent.eventName, guests, tables);
+        addNotification('Dados sincronizados com sucesso!', 'success');
+      } catch {
+        addNotification('Erro ao sincronizar dados.', 'error');
+      } finally {
+        setQrSyncing(false);
+      }
+    });
+  }, [user, selectedEventId, selectedEvent, guests, tables, addNotification, guard]);
 
   const handleCopyLink = useCallback(() => {
     const token = selectedEvent?.publicToken;
