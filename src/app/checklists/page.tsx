@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { useNotification } from '@/context/NotificationContext';
+import { useDemoGuard } from '@/utils/useDemoGuard';
 import { getEvents, Event } from '@/services/event.service';
 import {
   getChecklistsByEvent,
@@ -27,6 +28,7 @@ import LoadingOverlay from '@/components/LoadingOverlay';
 export default function ChecklistsPage() {
   const { user } = useAuth();
   const { addNotification } = useNotification();
+  const guard = useDemoGuard();
   const [events, setEvents] = useState<Event[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
 
@@ -100,14 +102,16 @@ export default function ChecklistsPage() {
 
   const handleDeleteTemplate = async (templateId: string) => {
     if (!user) return;
-    try {
-      await deleteTemplate(user.uid, templateId);
-      await loadTemplates();
-      addNotification('Template excluído com sucesso!', 'success');
-    } catch (error) {
-      console.error('Erro ao deletar template:', error);
-      addNotification('Erro ao excluir template.', 'error');
-    }
+    await guard(async () => {
+      try {
+        await deleteTemplate(user.uid, templateId);
+        await loadTemplates();
+        addNotification('Template excluído com sucesso!', 'success');
+      } catch (error) {
+        console.error('Erro ao deletar template:', error);
+        addNotification('Erro ao excluir template.', 'error');
+      }
+    });
   };
 
   const handleApplyTemplate = async (template: ChecklistTemplate) => {
@@ -115,24 +119,26 @@ export default function ChecklistsPage() {
       addNotification('Selecione um evento antes de aplicar o template.', 'warning');
       return;
     }
-    setIsApplying(true);
-    try {
-      for (const item of template.items) {
-        await addChecklistItem(user.uid, {
-          eventId: selectedEventId,
-          title: item.title,
-          period: item.period,
-          completed: false,
-        });
+    await guard(async () => {
+      setIsApplying(true);
+      try {
+        for (const item of template.items) {
+          await addChecklistItem(user.uid, {
+            eventId: selectedEventId,
+            title: item.title,
+            period: item.period,
+            completed: false,
+          });
+        }
+        await refreshChecklistItems();
+        addNotification(`Template "${template.name}" aplicado com sucesso!`, 'success');
+      } catch (error) {
+        console.error('Erro ao aplicar template:', error);
+        addNotification('Erro ao aplicar template.', 'error');
+      } finally {
+        setIsApplying(false);
       }
-      await refreshChecklistItems();
-      addNotification(`Template "${template.name}" aplicado com sucesso!`, 'success');
-    } catch (error) {
-      console.error('Erro ao aplicar template:', error);
-      addNotification('Erro ao aplicar template.', 'error');
-    } finally {
-      setIsApplying(false);
-    }
+    });
   };
 
   const handleReplaceWithTemplate = async (template: ChecklistTemplate) => {
@@ -140,25 +146,27 @@ export default function ChecklistsPage() {
       addNotification('Selecione um evento antes de substituir.', 'warning');
       return;
     }
-    setIsApplying(true);
-    try {
-      await deleteAllChecklistsByEvent(user.uid, selectedEventId);
-      for (const item of template.items) {
-        await addChecklistItem(user.uid, {
-          eventId: selectedEventId,
-          title: item.title,
-          period: item.period,
-          completed: false,
-        });
+    await guard(async () => {
+      setIsApplying(true);
+      try {
+        await deleteAllChecklistsByEvent(user.uid, selectedEventId);
+        for (const item of template.items) {
+          await addChecklistItem(user.uid, {
+            eventId: selectedEventId,
+            title: item.title,
+            period: item.period,
+            completed: false,
+          });
+        }
+        await refreshChecklistItems();
+        addNotification(`Checklist substituído pelo template "${template.name}"!`, 'success');
+      } catch (error) {
+        console.error('Erro ao substituir com template:', error);
+        addNotification('Erro ao substituir checklist.', 'error');
+      } finally {
+        setIsApplying(false);
       }
-      await refreshChecklistItems();
-      addNotification(`Checklist substituído pelo template "${template.name}"!`, 'success');
-    } catch (error) {
-      console.error('Erro ao substituir com template:', error);
-      addNotification('Erro ao substituir checklist.', 'error');
-    } finally {
-      setIsApplying(false);
-    }
+    });
   };
 
   const eventOptions = events.map(event => ({ value: event.id, label: event.eventName }));
