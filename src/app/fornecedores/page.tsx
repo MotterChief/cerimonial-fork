@@ -11,6 +11,7 @@ import ExpandableCard from '@/components/ExpandableCard';
 import { useIsMobile } from '@/utils/window.utils';
 import PhoneInput from '@/components/fields/PhoneInput';
 import TextArea from '@/components/fields/TextArea';
+import { useDemoGuard } from '@/utils/useDemoGuard';
 
 interface Supplier {
   id: string;
@@ -25,6 +26,7 @@ interface Supplier {
 export default function FornecedoresPage() {
   const { user } = useAuth();
   const { addNotification } = useNotification();
+  const guard = useDemoGuard();
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -65,15 +67,17 @@ export default function FornecedoresPage() {
   const handleAddSupplier = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    try {
-      await addSupplier(user.uid, newSupplier);
-      setNewSupplier(initialFormState);
-      fetchSuppliers();
-      addNotification('Fornecedor adicionado com sucesso!', 'success');
-    } catch (error) {
-      console.error('Failed to add supplier!', error);
-      addNotification('Erro ao adicionar fornecedor.', 'error');
-    }
+    await guard(async () => {
+      try {
+        await addSupplier(user.uid, newSupplier);
+        setNewSupplier(initialFormState);
+        fetchSuppliers();
+        addNotification('Fornecedor adicionado com sucesso!', 'success');
+      } catch (error) {
+        console.error('Failed to add supplier!', error);
+        addNotification('Erro ao adicionar fornecedor.', 'error');
+      }
+    });
   };
 
   const handleDeleteRequest = (supplier: Supplier) => {
@@ -83,17 +87,19 @@ export default function FornecedoresPage() {
 
   const handleDeleteConfirm = async () => {
     if (!user || !supplierToDelete) return;
-    try {
-      await deleteSupplier(user.uid, supplierToDelete.id);
-      fetchSuppliers();
-      addNotification('Fornecedor excluído com sucesso!', 'success');
-    } catch (error) {
-      console.error('Failed to delete supplier!', error);
-      addNotification('Erro ao excluir fornecedor.', 'error');
-    } finally {
-      setDeleteModalOpen(false);
-      setSupplierToDelete(null);
-    }
+    await guard(async () => {
+      try {
+        await deleteSupplier(user.uid, supplierToDelete.id);
+        fetchSuppliers();
+        addNotification('Fornecedor excluído com sucesso!', 'success');
+      } catch (error) {
+        console.error('Failed to delete supplier!', error);
+        addNotification('Erro ao excluir fornecedor.', 'error');
+      } finally {
+        setDeleteModalOpen(false);
+        setSupplierToDelete(null);
+      }
+    });
   };
 
   const openEditModal = (supplier: Supplier) => {
@@ -104,17 +110,19 @@ export default function FornecedoresPage() {
   const handleUpdateSupplier = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !editingSupplier) return;
-    try {
-      const { id, ...supplierData } = editingSupplier;
-      await updateSupplier(user.uid, id, supplierData);
-      setIsModalOpen(false);
-      setEditingSupplier(null);
-      fetchSuppliers();
-      addNotification('Fornecedor atualizado com sucesso!', 'success');
-    } catch (error) {
-      console.error('Failed to update supplier!', error);
-      addNotification('Falha ao atualizar fornecedor!', 'error');
-    }
+    await guard(async () => {
+      try {
+        const { id, ...supplierData } = editingSupplier;
+        await updateSupplier(user.uid, id, supplierData);
+        setIsModalOpen(false);
+        setEditingSupplier(null);
+        fetchSuppliers();
+        addNotification('Fornecedor atualizado com sucesso!', 'success');
+      } catch (error) {
+        console.error('Failed to update supplier!', error);
+        addNotification('Falha ao atualizar fornecedor!', 'error');
+      }
+    });
   };
 
   const filteredSuppliers = suppliers.filter(supplier =>
