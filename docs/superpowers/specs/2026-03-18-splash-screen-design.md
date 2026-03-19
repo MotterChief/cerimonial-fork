@@ -17,7 +17,7 @@ A tela inicial (`/`) do sistema exibia apenas uma mensagem genérica "Bem-vindo"
 
 **Arquivos:**
 - `src/app/page.tsx` — substituído pela splash screen
-- `src/app/page.module.css` — estilos isolados (novo arquivo CSS Module)
+- `src/app/page.module.css` — **arquivo substituído** (já existe com conteúdo do boilerplate Next.js — apagar conteúdo existente e reescrever completamente para a splash screen)
 
 Nenhum componente global novo. Nenhuma alteração em `globals.css`.
 
@@ -69,9 +69,14 @@ Nenhum componente global novo. Nenhuma alteração em `globals.css`.
 | Tablet (≤768px)  | 2 colunas     |
 | Mobile (≤480px)  | 1 coluna      |
 
+## Estado de Loading
+
+Enquanto `loading === true` (autenticação ainda não resolvida), retornar `null` — a tela fica em branco por um instante antes do redirect para `/agenda`. Isso evita flash de conteúdo e não requer inline styles ou componentes adicionais. Não usar a variante atual com `style={{ textAlign: 'center', paddingTop: '50px' }}` (inline style hardcoded, vedado pelas convenções).
+
 ## Restrições
 
 - Sem CSS frameworks
 - Sem novos arquivos CSS globais
 - Sem `'use server'`
 - Manter lógica de redirecionamento existente (`useAuth`)
+- Sem inline styles com valores hardcoded — usar classes CSS Module para tudo, incluindo o fundo do ícone hero
