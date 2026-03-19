@@ -67,7 +67,10 @@ export default function Home() {
   return (
     <div className={styles.main}>
       <div className={styles.themeToggle}>
-        <ThemeSwitcher />
+        <ThemeSwitcher
+          className={styles.themeSwitcherBtn}
+          placeholderClassName={styles.themeSwitcherPlaceholder}
+        />
       </div>
 
       <section className={styles.hero}>
