@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import ThemeSwitcher from '@/components/ThemeSwitcher';
 import styles from './page.module.css';
 
 const features = [
@@ -65,10 +66,12 @@ export default function Home() {
 
   return (
     <div className={styles.main}>
+      <div className={styles.themeToggle}>
+        <ThemeSwitcher />
+      </div>
+
       <section className={styles.hero}>
-        <div className={styles.heroIconWrapper}>
-          <i className={`fas fa-gem ${styles.heroIcon}`} />
-        </div>
+        <img src="/favicon.svg" alt="CerimoniasPro" className={styles.heroLogo} />
         <h1 className={styles.heroTitle}>CerimoniasPro</h1>
         <p className={styles.heroSubtitle}>
           Sua solução completa para gestão de eventos cerimoniais
