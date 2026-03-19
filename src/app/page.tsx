@@ -39,7 +39,7 @@ const features = [
     description: 'Crie listas de tarefas por evento',
   },
   {
-    icon: 'fa-route',
+    icon: 'fa-scroll',
     name: 'Roteiros',
     description: 'Monte roteiros detalhados para o dia do evento',
   },
